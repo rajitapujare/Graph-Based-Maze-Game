@@ -574,13 +574,13 @@ public class MapGenerator {
     }
 
 
-    public boolean upDown(int x, int y, TETile[][] map) {
+    public boolean upDown(int x, int y, TETile[][] map, TETile type) {
 
-        if (y < map[0].length - 1 && map[x][y + 1] != Tileset.FLOOR) {
+        if (y < map[0].length - 1 && map[x][y + 1] != type) {
             return false;
         }
 
-        if (y > 0 && map[x][y - 1] != Tileset.FLOOR) {
+        if (y > 0 && map[x][y - 1] != type) {
             return false;
         }
 
@@ -590,13 +590,13 @@ public class MapGenerator {
 
     }
 
-    public boolean rightLeft(int x, int y, TETile[][] map) {
+    public boolean rightLeft(int x, int y, TETile[][] map, TETile type) {
 
-        if (x < map.length - 1 && map[x + 1][y] != Tileset.FLOOR) {
+        if (x < map.length - 1 && map[x + 1][y] != type) {
             return false;
         }
 
-        if (x > 0 && map[x - 1][y] != Tileset.FLOOR) {
+        if (x > 0 && map[x - 1][y] != type) {
             return false;
         }
 
@@ -607,75 +607,112 @@ public class MapGenerator {
 
 
     public void verify(TETile[][] worldd) {
-        for (int i = 0; i < worldd.length; i += 1) {
-            for (int j = 0; j < worldd[0].length; j += 1) {
-                if (worldd[i][j] == Tileset.NOTHING) {
-                    ArrayList<TETile> nbors = neighbors(i, j, worldd);
-                    if (nbors.contains(Tileset.FLOOR)) {
-                        worldd[i][j] = Tileset.SAND;
-                    }
-                    ArrayList<TETile> corners = cornerTile(i, j, worldd);
+		for (int i = 0; i < worldd.length; i += 1) {
+			for (int j = 0; j < worldd[0].length; j += 1) {
+				if (worldd[i][j] == Tileset.NOTHING) {
+					ArrayList<TETile> nbors = neighbors(i, j, worldd);
+					if (nbors.contains(Tileset.FLOOR)) {
+						worldd[i][j] = Tileset.SAND;
+					}
+					ArrayList<TETile> corners = cornerTile(i, j, worldd);
 
-                    if (corners.contains(Tileset.WALL) && nbors.contains(Tileset.WALL)) {
-                        worldd[i][j] = Tileset.SAND;
-                    }
+					if (corners.contains(Tileset.WALL) && nbors.contains(Tileset.WALL)) {
+						worldd[i][j] = Tileset.SAND;
+					}
 
-                    if (corners.contains(Tileset.FLOOR)) {
-                        worldd[i][j] = Tileset.SAND;
-                    }
-                }
+					if (corners.contains(Tileset.FLOOR)) {
+						worldd[i][j] = Tileset.SAND;
+					}
+				}
 
-                if (worldd[i][j] == Tileset.WALL) {
-                    ArrayList<TETile> nbors = neighbors(i, j, worldd);
-                    ArrayList<TETile> corners = cornerTile(i, j, worldd);
-                    if (corners.contains(Tileset.WALL) && nbors.contains(Tileset.WALL)) {
-                        worldd[i][j] = Tileset.FLOOR;
-                    }
+				if (worldd[i][j] == Tileset.WALL) {
+					ArrayList<TETile> nbors = neighbors(i, j, worldd);
+					ArrayList<TETile> corners = cornerTile(i, j, worldd);
+					if (corners.contains(Tileset.WALL) && nbors.contains(Tileset.WALL)) {
+						worldd[i][j] = Tileset.FLOOR;
+					}
 
-                    if (rightLeft(i, j, worldd) || upDown(i, j, worldd)) {
-                        worldd[i][j] = Tileset.FLOOR;
-                    }
-
-
-                }
+					if (rightLeft(i, j, worldd, Tileset.WALL) || upDown(i, j, worldd, Tileset.WALL)) {
+						worldd[i][j] = Tileset.FLOOR;
+					}
 
 
-            }
-        }
-        for (int i = 0; i < worldd.length; i += 1) {
-            for (int j = 0; j < worldd[0].length; j += 1) {
-
-                if (worldd[i][j] == Tileset.SAND) {
-                    worldd[i][j] = Tileset.WALL;
-                }
-
-                if (worldd[i][j] == Tileset.WALL) {
-                    if (rightLeft(i, j, worldd) || upDown(i, j, worldd)) {
-                        worldd[i][j] = Tileset.FLOOR;
-                    }
-
-                }
-                if (worldd[i][j] == Tileset.FLOOR) {
-                    if (i == 0 || i == worldd.length - 1 || j == 0 || j == worldd[0].length - 1) {
-                        worldd[i][j] = Tileset.WALL;
-                    }
-                }
-            }
-        }
-
-        worldd[0][worldd[0].length - 1] = Tileset.TREE;
-        worldd[worldd.length  - 1][worldd[0].length - 1] = Tileset.TREE;
-
-        TETile [][] copy = new TETile[worldd.length][];
-        for (int i = 0; i < worldd.length; i++) {
-            TETile[] t = worldd[i];
-            int aLength = t.length;
-            copy[i] = new TETile[aLength];
-            System.arraycopy(t, 0, copy[i], 0, aLength);
-        }
-        this.original = copy;
+				}
 
 
+			}
+		}
+
+		for (int i = 0; i < worldd.length; i += 1) {
+			for (int j = 0; j < worldd[0].length; j += 1) {
+
+				if (worldd[i][j] == Tileset.SAND) {
+					ArrayList<TETile> nbors = neighbors(i, j, worldd);
+					if (!nbors.contains(Tileset.NOTHING)) {
+						worldd[i][j] = Tileset.FLOOR;
+					}
+
+				}
+
+
+			}
+		}
+
+
+		for (int i = 0; i < worldd.length; i += 1) {
+			for (int j = 0; j < worldd[0].length; j += 1) {
+
+				if (worldd[i][j] == Tileset.NOTHING) {
+					ArrayList<TETile> nbors = neighbors(i, j, worldd);
+
+					ArrayList<TETile> corners = cornerTile(i, j, worldd);
+
+
+					if (corners.contains(Tileset.FLOOR)) {
+						worldd[i][j] = Tileset.SAND;
+					}
+
+
+				}
+
+			}
+		}
+
+		for (int i = 0; i < worldd.length; i += 1) {
+			for (int j = 0; j < worldd[0].length; j += 1) {
+
+
+				if (worldd[i][j] == Tileset.SAND) {
+					worldd[i][j] = Tileset.WALL;
+				}
+
+
+				if (worldd[i][j] == Tileset.FLOOR) {
+					if (i == 0 || i == worldd.length - 1 || j == 0 || j == worldd[0].length - 1) {
+						worldd[i][j] = Tileset.WALL;
+					}
+				}
+
+			}
+		}
+
+
+
+
+
+
+
+		worldd[0][worldd[0].length - 1] = Tileset.TREE;
+		worldd[worldd.length  - 1][worldd[0].length - 1] = Tileset.TREE;
+
+		TETile [][] copy = new TETile[worldd.length][];
+		for (int i = 0; i < worldd.length; i++) {
+			TETile[] t = worldd[i];
+			int aLength = t.length;
+			copy[i] = new TETile[aLength];
+			System.arraycopy(t, 0, copy[i], 0, aLength);
+		}
+		this.original = copy;
     }
 
 
@@ -764,21 +801,16 @@ public class MapGenerator {
 
     public static void main(String[] args) {
         TERenderer ter = new TERenderer();
-        ter.initialize(100, 80);
+        ter.initialize(80, 30);
 
-        TETile[][] randomTiles = new TETile[100][80];
+        TETile[][] randomTiles = new TETile[80][30];
         for (int i = 0; i < randomTiles.length; i++) {
             Arrays.fill(randomTiles[i], Tileset.NOTHING);
         }
-        MapGenerator mg = new MapGenerator(678686, 100, 80, randomTiles);
+        MapGenerator mg = new MapGenerator(12542, 80, 30, randomTiles);
 
         mg.drawActualRooms(randomTiles);
         mg.drawTheHallways(randomTiles);
-        mg.turnLightOff(randomTiles, 1);
-        mg.turnLightOff(randomTiles, 0);
-
-        mg.turnLightOn(randomTiles, 0);
-        mg.turnLightOn(randomTiles, 1);
 
 
         System.out.println(mg.actualRooms.size());
